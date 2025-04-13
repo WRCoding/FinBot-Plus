@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.longjunwang.finbotplus.mapper.RecordMapper">
+
+    <resultMap id="recordResultMap" type="com.longjunwang.finbotplus.entity.Record">
+        <id property="recordNo" column="record_no" />
+        <result property="date" column="date" />
+        <result property="amount" column="amount" />
+        <result property="type" column="type" />
+        <result property="remark" column="remark" />
+        <result property="subRemark" column="sub_remark" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+    </resultMap>
+
+    <!-- 插入记录 - 只插入非空字段 -->
+    <insert id="insertSelective" parameterType="com.longjunwang.finbotplus.entity.Record">
+        INSERT INTO record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="recordNo != null">record_no,</if>
+            <if test="date != null">date,</if>
+            <if test="amount != null">amount,</if>
+            <if test="type != null">type,</if>
+            <if test="remark != null">remark,</if>
+            <if test="subRemark != null">sub_remark,</if>
+            created_at,updated_at
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="recordNo != null">#{recordNo},</if>
+            <if test="date != null">#{date},</if>
+            <if test="amount != null">#{amount},</if>
+            <if test="type != null">#{type},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="subRemark != null">#{subRemark},</if>
+            strftime('%Y-%m-%d %H:%M:%S', 'now', 'localtime'),strftime('%Y-%m-%d %H:%M:%S', 'now', 'localtime')
+        </trim>
+    </insert>
+
+    <!-- 更新记录 - 只更新非空字段 -->
+    <update id="updateSelective" parameterType="com.longjunwang.finbotplus.entity.Record">
+        UPDATE record
+        <set>
+            <if test="date != null">date = #{date},</if>
+            <if test="amount != null">amount = #{amount},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="subRemark != null">sub_remark = #{subRemark},</if>
+            updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now', 'localtime')
+        </set>
+        WHERE record_no = #{recordNo}
+    </update>
+
+    <!-- 根据记录号删除 -->
+    <delete id="deleteByRecordNo" parameterType="String">
+        DELETE FROM record WHERE record_no = #{recordNo}
+    </delete>
+
+    <!-- 根据记录号查询 -->
+    <select id="selectByRecordNo" parameterType="String" resultMap="recordResultMap">
+        SELECT * FROM record WHERE record_no = #{recordNo}
+    </select>
+
+    <!-- 查询所有记录 -->
+    <select id="selectAll" resultMap="recordResultMap">
+        SELECT * FROM record
+    </select>
+
+    <!-- 条件查询 -->
+    <select id="selectByCondition" parameterType="com.longjunwang.finbotplus.entity.Record" resultMap="recordResultMap">
+        SELECT * FROM record
+        <where>
+            <if test="recordNo != null">AND record_no = #{recordNo}</if>
+            <if test="date != null">AND date = #{date}</if>
+            <if test="amount != null">AND amount = #{amount}</if>
+            <if test="type != null">AND type = #{type}</if>
+            <if test="remark != null">AND remark LIKE CONCAT('%', #{remark}, '%')</if>
+            <if test="subRemark != null">AND sub_remark LIKE CONCAT('%', #{subRemark}, '%')</if>
+        </where>
+    </select>
+
+    <select id="selectByRangeDate" resultMap="recordResultMap">
+        SELECT * FROM record where date <![CDATA[ >= ]]> #{startTime} and date <![CDATA[ <= ]]> #{endTime};
+    </select>
+</mapper>
