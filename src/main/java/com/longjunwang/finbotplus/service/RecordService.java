@@ -83,6 +83,7 @@ public class RecordService {
             return null;
         }
         record.setRecordNo(IdGenerator.generateId());
+        record.setRemark(record.getSubRemark());
         return record;
     }
 
