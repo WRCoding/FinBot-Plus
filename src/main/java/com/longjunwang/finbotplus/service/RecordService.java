@@ -21,6 +21,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,25 +55,39 @@ public class RecordService {
         return ApiResponse.success(answer);
     }
 
+    public ApiResponse<String> queryWithMcp(Query query){
+        // 获取当前日期
+        LocalDate currentDate = LocalDate.now();
+
+        // 定义格式化模式（YYYY年mm月dd日）
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy年MM月dd日");
+
+        // 格式化日期
+        String formattedDate = currentDate.format(formatter);
+        String answer = chatModelManager.chatWithMcp(query.model(), PromptUtil.getSystemMessageBySt("analyse.st", Map.of("date", formattedDate)), query.question(), String.class)
+                .orElse("请求有误,请检查数据");
+        return ApiResponse.success(answer);
+    }
+
     public ApiResponse<String> updateRecord(RecordMsg recordMsg){
         Record record = recordMapper.selectByRecordNo(recordMsg.recordNo());
         if (Objects.isNull(record)){
             log.error("recordNo不存在, recordNo: {}", recordMsg.recordNo());
             return ApiResponse.fail(ResponseCode.INTERNAL_SERVER_ERROR.getCode(), "recordNo不存在, recordNo: " + recordMsg.recordNo());
         }
-        if (!StringUtils.hasText(recordMsg.extraMsg()) || !recordMsg.extraMsg().contains(",")) {
+        if (!StringUtils.hasText(recordMsg.extraMsg()) ) {
             log.error("extraMsg.extraMsg不符合要求,不进行处理, extraMsg.msg: {}", recordMsg.extraMsg());
             return ApiResponse.fail(ResponseCode.INTERNAL_SERVER_ERROR.getCode(), "extraMsg.extraMsg不符合要求,不进行处理, extraMsg.msg: " + recordMsg.extraMsg());
         }
-        String[] msg = recordMsg.extraMsg().split(",");
-        if (msg.length != 2){
-            log.error("extraMsg.extraMsg不符合要求,不进行处理, extraMsg.msg: {}", recordMsg.extraMsg());
-            return ApiResponse.fail(ResponseCode.INTERNAL_SERVER_ERROR.getCode(), "extraMsg.extraMsg不符合要求,不进行处理, extraMsg.msg: " + recordMsg.extraMsg());
-        }
+        String[] msg = recordMsg.extraMsg().split(" ");
         Record update = new Record();
         update.setRecordNo(record.getRecordNo());
-        update.setType(msg[0]);
-        update.setRemark(msg[1]);
+        if (msg.length > 1){
+            update.setType(msg[0]);
+            update.setRemark(msg[1]);
+        }else{
+            update.setRemark(msg[0]);
+        }
         recordMapper.updateSelective(update);
         return ApiResponse.success("更新成功,recordNo: " + recordMsg.recordNo());
     }
