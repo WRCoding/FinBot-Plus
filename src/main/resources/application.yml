@@ -1,0 +1,30 @@
+server:
+  port: 7406
+spring:
+  application:
+    name: FinBot-Plus
+  datasource:
+    url: jdbc:sqlite:/Users/wanglongjun/Downloads/record.db
+  ai:
+    deepseek:
+      base-url: https://api.deepseek.com
+    openai:
+      chat:
+        options:
+          model: deepseek-chat
+    anthropic:
+      chat:
+        options:
+          model: claude-3-7-sonnet-20250219
+      base-url: https://api.gptsapi.net
+    gemini:
+      base-url: https://openrouter.ai/api
+      model: google/gemini-2.5-flash-preview
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+telegram:
+  userId:

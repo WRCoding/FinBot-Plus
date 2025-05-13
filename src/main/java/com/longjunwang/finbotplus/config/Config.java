@@ -1,10 +1,15 @@
 package com.longjunwang.finbotplus.config;
 
+import com.longjunwang.finbotplus.telegram.TeleGramBot;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.telegram.telegrambots.bots.DefaultBotOptions;
+import org.telegram.telegrambots.meta.TelegramBotsApi;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import javax.sql.DataSource;
 import java.io.File;
@@ -16,10 +21,39 @@ import java.sql.Statement;
 
 @Configuration
 @Slf4j
-public class DataSourceConfig {
+public class Config {
 
     @Value("${spring.datasource.url}")
     private String dbUrl;
+
+    // 梯子的IP，我的是本地的
+    public static final String proxyHost = "127.0.0.1";
+    // 本地监听的端口
+    public static final int proxyPort = 7890;
+
+    @Bean
+    public DefaultBotOptions defaultBotOptions() {
+        DefaultBotOptions botOptions = new DefaultBotOptions();
+        botOptions.setProxyHost(proxyHost);
+        botOptions.setProxyPort(proxyPort);
+        //ProxyType是个枚举
+        botOptions.setProxyType(DefaultBotOptions.ProxyType.SOCKS5);
+        return botOptions;
+    }
+
+    @Bean
+    public DefaultBotSession DefaultBotSession() {
+        DefaultBotSession defaultBotSession = new DefaultBotSession();
+        defaultBotSession.setOptions(defaultBotOptions());
+        return defaultBotSession;
+    }
+
+    @Bean
+    public TelegramBotsApi telegramBotsApi(TeleGramBot teleGramBot) throws TelegramApiException {
+        TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession().getClass());
+        telegramBotsApi.registerBot(teleGramBot);
+        return telegramBotsApi;
+    }
 
     @Bean
     public DataSource dataSource() {

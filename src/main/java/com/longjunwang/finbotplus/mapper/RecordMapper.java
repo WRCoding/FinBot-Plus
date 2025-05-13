@@ -19,4 +19,5 @@ public interface RecordMapper {
     List<Record> selectByCondition(Record record);
 
     List<Record> selectByRangeDate(@Param("startTime") String startTime, @Param("endTime") String endTime);
+    List<Record> selectByRangeDateAndRemark(@Param("startTime") String startTime, @Param("endTime") String endTime, @Param("remark")String remark);
 }

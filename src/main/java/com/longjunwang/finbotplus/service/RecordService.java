@@ -21,6 +21,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
@@ -50,24 +51,16 @@ public class RecordService {
     }
 
     public ApiResponse<String> query(Query query){
-        String answer = chatModelManager.chatToolWithModel(query.model(), PromptUtil.getSystemMessageBySt("analyse.st", Map.of("date", LocalDate.now().toString())), query.question(), String.class, this)
-                .orElse("请求有误,请检查数据");
-        return ApiResponse.success(answer);
-    }
-
-    public ApiResponse<String> queryWithMcp(Query query){
-        // 获取当前日期
         LocalDate currentDate = LocalDate.now();
 
         // 定义格式化模式（YYYY年mm月dd日）
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy年MM月dd日");
-
-        // 格式化日期
-        String formattedDate = currentDate.format(formatter);
-        String answer = chatModelManager.chatWithMcp(query.model(), PromptUtil.getSystemMessageBySt("analyse.st", Map.of("date", formattedDate)), query.question(), String.class)
+        String answer = chatModelManager.chatWithModel(query.model(), PromptUtil.getSystemMessage("analyse.txt", "{date}", currentDate.format(formatter)), query.question(), String.class)
                 .orElse("请求有误,请检查数据");
+        log.info(answer);
         return ApiResponse.success(answer);
     }
+
 
     public ApiResponse<String> updateRecord(RecordMsg recordMsg){
         Record record = recordMapper.selectByRecordNo(recordMsg.recordNo());
@@ -97,6 +90,14 @@ public class RecordService {
         if (Objects.isNull(record)) {
             return null;
         }
+        if (!StringUtils.hasText(record.getDate())){
+            LocalDateTime currentDate = LocalDateTime.now();
+
+            // 定义格式化模式（YYYY年mm月dd日）
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH:mm");
+            String formattedDate = currentDate.format(formatter);
+            record.setDate(formattedDate);
+        }
         record.setRecordNo(IdGenerator.generateId());
         record.setRemark(record.getSubRemark());
         return record;
@@ -108,7 +109,7 @@ public class RecordService {
             // 连接data.db数据库
             Connection connection = DriverManager.getConnection("jdbc:sqlite:/Users/wanglongjun/project/RecordBot/data.db");
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT * FROM transactions");
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM transactions where transaction_time <= '2025年04月22日'");
             int count = 0;
             while (resultSet.next()) {
                 try {
@@ -145,25 +146,4 @@ public class RecordService {
             log.error("数据迁移过程发生异常", e);
         }
     }
-
-    @Tool(description = "获取指定范围内的记录数据", name = "getRecordByRangeDate")
-    public String getRecordByRangeDate(@ToolParam(description = "范围的起始时间,包含这天,时间格式转换为YYYY年mm月dd日 例如2025年03月01日") String startTime,
-                                             @ToolParam(description = "范围的终止时间,不包含这天,时间格式转换为YYYY年mm月dd日 例如2025年03月10日") String endTime){
-        log.info("startTime: {}, endTime: {}", startTime, endTime);
-        List<Record> records = recordMapper.selectByRangeDate(startTime, endTime);
-        Map<String, Double> sumByType = records.stream()
-                .collect(Collectors.groupingBy(
-                        Record::getType,
-                        Collectors.summingDouble(record -> Double.parseDouble(record.getAmount()))
-                ));
-        Map<String, Object> extraMap = new HashMap<>();
-        extraMap.put("金额总结", sumByType);
-        extraMap.put("交易总数", records.size());
-        List<Record> data = records.size() > 20 ? records.subList(0, 20) : records;
-        ToolResp<List<Record>> toolResp = new ToolResp<>(data, extraMap);
-        String jsonStr = JSONUtil.toJsonStr(toolResp);
-        log.info("toolResp: {}", jsonStr);
-        return jsonStr;
-    }
-
 }

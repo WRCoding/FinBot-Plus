@@ -27,13 +27,15 @@ public class PromptUtil {
         return systemPromptTemplate.createMessage(map);
     }
 
-    public static Message getSystemMessage(String path){
+    public static Message getSystemMessage(String path, String... chars){
         ClassPathResource resource = new ClassPathResource(RESOURCE_PATH.formatted(path));
         String template;
         try (InputStream inputStream = resource.getInputStream()) {
             template = StreamUtils.copyToString(inputStream, Charset.defaultCharset());
+            if (chars.length > 0){
+                template = template.replace(chars[0], chars[1]);
+            }
             log.info("template: {}", template);
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

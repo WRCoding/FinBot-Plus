@@ -81,4 +81,8 @@
     <select id="selectByRangeDate" resultMap="recordResultMap">
         SELECT * FROM record where date <![CDATA[ >= ]]> #{startTime} and date <![CDATA[ <= ]]> #{endTime};
     </select>
+<!--CONCAT('%', #{remark}, '%')-->
+    <select id="selectByRangeDateAndRemark" resultMap="recordResultMap">
+        SELECT * FROM record where date <![CDATA[ >= ]]> #{startTime} and date <![CDATA[ <= ]]> #{endTime} and (remark like CONCAT('%', #{remark}, '%') or sub_remark like CONCAT('%', #{remark}, '%'));
+    </select>
 </mapper>

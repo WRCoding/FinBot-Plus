@@ -14,6 +14,7 @@ public class ChatModelManager {
 
     private final List<BaseChatClient> chatClients;
 
+
     @Autowired
     public ChatModelManager(List<BaseChatClient> chatClients) {
         this.chatClients = chatClients;
@@ -53,19 +54,7 @@ public class ChatModelManager {
                 });
     }
 
-    public <T> Optional<T> chatToolWithModel(String modelName, Message systemMessage, String userQuery, Class<T> type, Object... tools) {
-        return chatClients.stream()
-                .filter(client -> client.getName().equalsIgnoreCase(modelName))
-                .findFirst()
-                .map(client -> {
-                    try {
-                        return client.chat(systemMessage, userQuery, type, tools);
-                    } catch (Exception e) {
-                        log.error("{} error, e", client.getName(), e);
-                        return null;
-                    }
-                });
-    }
+
 
 
     /**
