@@ -1,6 +1,7 @@
 package com.longjunwang.finbotplus.ai;
 
 import jakarta.annotation.PostConstruct;
+import lombok.Data;
 import org.springframework.ai.anthropic.AnthropicChatModel;
 import org.springframework.ai.anthropic.AnthropicChatOptions;
 import org.springframework.ai.anthropic.api.AnthropicApi;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
+@Data
 public class ClaudeChatClient extends BaseChatClient{
 
     @Value("${spring.ai.anthropic.base-url}")

@@ -2,10 +2,12 @@ package com.longjunwang.finbotplus.config;
 
 import com.longjunwang.finbotplus.telegram.TeleGramBot;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -29,13 +31,14 @@ public class Config {
     // 梯子的IP，我的是本地的
     public static final String proxyHost = "127.0.0.1";
     // 本地监听的端口
-    public static final int proxyPort = 7890;
+    @Value("${telegram.proxyPort}")
+    public String proxyPort;
 
     @Bean
     public DefaultBotOptions defaultBotOptions() {
         DefaultBotOptions botOptions = new DefaultBotOptions();
         botOptions.setProxyHost(proxyHost);
-        botOptions.setProxyPort(proxyPort);
+        botOptions.setProxyPort( Integer.parseInt(proxyPort));
         //ProxyType是个枚举
         botOptions.setProxyType(DefaultBotOptions.ProxyType.SOCKS5);
         return botOptions;

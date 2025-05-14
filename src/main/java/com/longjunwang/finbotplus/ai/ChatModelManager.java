@@ -3,8 +3,11 @@ package com.longjunwang.finbotplus.ai;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
+import java.net.URL;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,27 +23,22 @@ public class ChatModelManager {
         this.chatClients = chatClients;
     }
 
-    /**
-     * 使用指定的模型进行对话
-     * @param modelName 模型名称
-     * @param userQuery 用户输入
-     * @return 如果找到模型并成功调用则返回结果，否则返回空
-     */
-    public Optional<String> chatWithModel(String modelName, Message systemMessage, String userQuery) {
+    public <T> T chatWithModelByMedia(String modelName, MediaType mediaType, Resource resource, Class<T> type) {
         return chatClients.stream()
                 .filter(client -> client.getName().equalsIgnoreCase(modelName))
                 .findFirst()
                 .map(client -> {
                     try {
-                        return client.chat(systemMessage, userQuery);
+                        return client.chat(mediaType, resource, type);
                     } catch (Exception e) {
+                        log.error("chatWithModelByMedia error", e);
                         return null;
                     }
-                });
+                }).orElse(null);
     }
 
 
-    public <T> Optional<T> chatWithModel(String modelName, Message systemMessage, String userQuery, Class<T> type) {
+    public <T> T chatWithModel(String modelName, Message systemMessage, String userQuery, Class<T> type) {
         return chatClients.stream()
                 .filter(client -> client.getName().equalsIgnoreCase(modelName))
                 .findFirst()
@@ -51,7 +49,7 @@ public class ChatModelManager {
                         log.error("{} error, e", client.getName(), e);
                         return null;
                     }
-                });
+                }).orElse(null);
     }
 
 

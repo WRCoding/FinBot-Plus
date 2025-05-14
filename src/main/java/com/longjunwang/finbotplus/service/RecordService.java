@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -39,10 +41,10 @@ public class RecordService {
     @Autowired
     private ChatModelManager chatModelManager;
 
-    public String insertRecord(RecordMsg recordMsg) throws IOException {
-        Record record = buildRecord(recordMsg.content());
+    public String insertRecord(RecordContext context) throws IOException {
+        Record record = buildRecord(context);
         if (Objects.isNull(record)) {
-            log.error("解析失败, recordMsg:{}", recordMsg);
+            log.error("解析失败, recordMsg:{}", context);
             return null;
         } else {
             recordMapper.insertSelective(record);
@@ -55,8 +57,7 @@ public class RecordService {
 
         // 定义格式化模式（YYYY年mm月dd日）
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy年MM月dd日");
-        String answer = chatModelManager.chatWithModel(query.model(), PromptUtil.getSystemMessage("analyse.txt", "{date}", currentDate.format(formatter)), query.question(), String.class)
-                .orElse("请求有误,请检查数据");
+        String answer = chatModelManager.chatWithModel(query.model(), PromptUtil.getSystemMessage("analyse.txt", "{date}", currentDate.format(formatter)), query.question(), String.class);
         log.info(answer);
         return ApiResponse.success(answer);
     }
@@ -85,8 +86,8 @@ public class RecordService {
         return ApiResponse.success("更新成功,recordNo: " + recordMsg.recordNo());
     }
 
-    private Record buildRecord(String msg) throws IOException {
-        Record record = chatModelManager.chatWithModel("DEEPSEEK", PromptUtil.getSystemMessage("record.txt"), msg, Record.class).orElse(null);
+    private Record buildRecord(RecordContext context) throws IOException {
+        Record record = initRecord(context);
         if (Objects.isNull(record)) {
             return null;
         }
@@ -101,6 +102,13 @@ public class RecordService {
         record.setRecordNo(IdGenerator.generateId());
         record.setRemark(record.getSubRemark());
         return record;
+    }
+
+    private Record initRecord(RecordContext context){
+        if (Objects.nonNull(context.getRecordMsg())){
+            return chatModelManager.chatWithModel("DEEPSEEK", PromptUtil.getSystemMessage("record.txt"), context.getRecordMsg().content(), Record.class);
+        }
+        return chatModelManager.chatWithModelByMedia("CLAUDE", context.getMediaType(), context.getResource(), Record.class);
     }
 
     public void move(){

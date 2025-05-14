@@ -1,9 +1,6 @@
 package com.longjunwang.finbotplus.controller;
 
-import com.longjunwang.finbotplus.entity.ApiResponse;
-import com.longjunwang.finbotplus.entity.Query;
-import com.longjunwang.finbotplus.entity.RecordMsg;
-import com.longjunwang.finbotplus.entity.ResponseCode;
+import com.longjunwang.finbotplus.entity.*;
 import com.longjunwang.finbotplus.service.RecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +21,9 @@ public class RecordController {
     @PostMapping("/receive/msg")
     public ApiResponse<String> receiveMsg(@RequestBody RecordMsg recordMsg) {
         try {
-            String recordNo = recordService.insertRecord(recordMsg);
+            RecordContext context = new RecordContext();
+            context.setRecordMsg(recordMsg);
+            String recordNo = recordService.insertRecord(context);
             if (Objects.isNull(recordNo)){
                 return ApiResponse.fail(ResponseCode.INTERNAL_SERVER_ERROR.getCode(), "record插入失败,请检查");
             }

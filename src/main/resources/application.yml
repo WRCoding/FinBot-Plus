@@ -28,3 +28,5 @@ mybatis:
 
 telegram:
   userId:
+  local:
+  token:
