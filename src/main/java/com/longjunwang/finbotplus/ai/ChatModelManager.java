@@ -60,18 +60,16 @@ public class ChatModelManager {
      * @param userQuery 用户输入
      * @return 如果任一模型成功响应则返回结果，否则返回空
      */
-    public Optional<String> chatWithAnyModel(String userQuery) {
+    public <T> T chatWithAnyModel(Message systemMessage, String userQuery, Class<T> type) {
         for (BaseChatClient client : chatClients) {
             try {
-                String response = client.chat(userQuery);
-                if (response != null && !response.isEmpty()) {
-                    return Optional.of(response);
-                }
-            } catch (Exception ignored) {
+                return client.chat(systemMessage, userQuery, type);
+            } catch (Exception e) {
                 // 继续尝试下一个模型
+                log.error("name: {}, e: {}", client.getName(), e.getMessage());
             }
         }
-        return Optional.empty();
+        return null;
     }
 
     /**

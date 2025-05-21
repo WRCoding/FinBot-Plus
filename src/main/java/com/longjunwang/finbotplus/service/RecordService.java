@@ -57,7 +57,7 @@ public class RecordService {
 
         // 定义格式化模式（YYYY年mm月dd日）
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy年MM月dd日");
-        String answer = chatModelManager.chatWithModel(query.model(), PromptUtil.getSystemMessage("analyse.txt", "{date}", currentDate.format(formatter)), query.question(), String.class);
+        String answer = chatModelManager.chatWithAnyModel( PromptUtil.getSystemMessage("analyse.txt", "{date}", currentDate.format(formatter)), query.question(), String.class);
         log.info(answer);
         return ApiResponse.success(answer);
     }
@@ -106,7 +106,7 @@ public class RecordService {
 
     private Record initRecord(RecordContext context){
         if (Objects.nonNull(context.getRecordMsg())){
-            return chatModelManager.chatWithModel("DEEPSEEK", PromptUtil.getSystemMessage("record.txt"), context.getRecordMsg().content(), Record.class);
+            return chatModelManager.chatWithAnyModel(PromptUtil.getSystemMessage("record.txt"), context.getRecordMsg().content(), Record.class);
         }
         return chatModelManager.chatWithModelByMedia("CLAUDE", context.getMediaType(), context.getResource(), Record.class);
     }
