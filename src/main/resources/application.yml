@@ -20,6 +20,21 @@ spring:
     gemini:
       base-url: https://openrouter.ai/api
       model: google/gemini-2.5-flash-preview
+    mcp:
+      client:
+        stdio:
+          connections:
+            sqliteMcp:
+              command: uv
+              args:
+                - --directory
+                - /Users/wanglongjun/Downloads/servers-2025.4.6/src/sqlite
+                - run
+                - mcp-server-sqlite
+                - --db-path
+                - /Users/wanglongjun/Downloads/record.db
+        toolcallback:
+          enabled=true:
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml

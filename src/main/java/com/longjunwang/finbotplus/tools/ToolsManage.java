@@ -3,6 +3,7 @@ package com.longjunwang.finbotplus.tools;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.definition.ToolDefinition;
@@ -21,11 +22,11 @@ public class ToolsManage {
 
     private final ApplicationContext context;
 
-//    private final SyncMcpToolCallbackProvider syncMcpToolCallbackProvider;
+    private final SyncMcpToolCallbackProvider syncMcpToolCallbackProvider;
 
-    public ToolsManage(ApplicationContext context) {
+    public ToolsManage(ApplicationContext context, SyncMcpToolCallbackProvider syncMcpToolCallbackProvider) {
         this.context = context;
-//        this.syncMcpToolCallbackProvider = syncMcpToolCallbackProvider;
+        this.syncMcpToolCallbackProvider = syncMcpToolCallbackProvider;
     }
 
     @Getter
@@ -52,8 +53,8 @@ public class ToolsManage {
                 toolCallbacks.add(toolCallback);
             }
         }
-//        toolCallbacks.addAll(List.of(syncMcpToolCallbackProvider.getToolCallbacks()));
-//        printToolCallbacks();
+        toolCallbacks.addAll(List.of(syncMcpToolCallbackProvider.getToolCallbacks()));
+        printToolCallbacks();
     }
 
     private void printToolCallbacks() {
